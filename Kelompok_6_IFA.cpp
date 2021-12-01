@@ -250,10 +250,9 @@ void addUser(Node_1 **head, Node_1 **tail, int &accountCount) {
 		*head = newNode;
 		*tail = newNode;
 	} else {//kalau linked list sudah terisi
-		newNode->prev = *tail;
 		newNode->next = NULL;
 		(*tail)->next = newNode;
-		*tail = newNode;
+		*tail = newNode; 	
 	}
 }
 
@@ -622,11 +621,12 @@ void lihatDataSatuUser( Node_1 *head, string selectedID ) {
 	} else {
 		while ( head != NULL ) {
 			if (head->data._id == selectedID) {
-				cout<< "\n\n\nBerikut Adalah Data User yang ingin anda ubah: \n";
-				cout<< "\nID		: "<<head->data._id << "\n";
-				cout<< "Nama		: "<<head->data.nama << "\n";
-				cout<< "Username	: "<<head->data.userName<<"\n";
-				cout<< "Password	: "<<head->data.pass<< "\n";
+				cout << "\n\n\nBerikut Adalah Data User yang ingin anda ubah: \n";
+				cout << "\nID		: "<<head->data._id << "\n";
+				cout << "Nama		: "<<head->data.nama << "\n";
+				cout << "Username	: "<<head->data.userName<<"\n";
+				cout << "Password	: "<<head->data.pass<< "\n";
+				cout << "Email		: "<< head->data.email<<"\n\n";
 			}
 			head = head->next;
 		}
@@ -636,13 +636,10 @@ void lihatDataSatuUser( Node_1 *head, string selectedID ) {
 
 
 void ubahDataUser( Node_1 *head, string selectedID ) {
-    Node_1 *nodeBaru = new Node_1();
-    
-	nodeBaru = head;
-	while (nodeBaru != NULL) {
+	while (head != NULL) {
 		char pil;
 		bool repeat = true;
-        if (nodeBaru->data._id == selectedID) {
+        if (head->data._id == selectedID) {
         	do {
         		system("cls");
         		lihatDataSatuUser(head, selectedID);
@@ -652,15 +649,15 @@ void ubahDataUser( Node_1 *head, string selectedID ) {
 	        	cout << "3. Ubah Email"<<endl;
 	        	cout << "\nPilih Menu: ";pil = getch();
 	        	if(pil == '1') {
-	        		cout<<"\n\nMasukkan Nama Baru  :  " ;	fflush(stdin);getline(cin,nodeBaru->data.nama);	
+	        		cout<<"\n\nMasukkan Nama Baru  :  " ;	fflush(stdin);getline(cin,head->data.nama);	
 	        		repeat = false;
 	        		cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '2') {
-					cout<<"\n\nMasukkan Password Baru :  "; 	cin>>nodeBaru->data.pass;	
+					cout<<"\n\nMasukkan Password Baru :  "; 	cin>>head->data.pass;	
 					repeat = false;
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '3') {
-					cout<<"\n\nMasukkan Email Baru :  "; 	cin>>nodeBaru->data.email;
+					cout<<"\n\nMasukkan Email Baru :  "; 	cin>>head->data.email;
 					repeat = false;	
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else {
@@ -668,17 +665,17 @@ void ubahDataUser( Node_1 *head, string selectedID ) {
 				}
 			} while(repeat);
         }        
-		nodeBaru = nodeBaru -> next;
+		head = head -> next;
 	}
-	
 }
+
 
 
 
 //Fungsi Hapus game bertipe data struct jadi ini kembaliannya nanti berupa Struct.
 Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
 	//Buat Struct temp untuk perulangan nanti
-	Node_1 *temp;
+	Node_1 *temp = new Node_1;
 	if (head == NULL) {
 		cout << "User Tidak ada!!" << endl;
 		return head;
@@ -693,7 +690,6 @@ Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
         head = head->next;
         head->prev = NULL;
         //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
-        free(del);  
         return head;
     }
     //masukkan nilai dari head ke temp
@@ -710,6 +706,7 @@ Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
             temp->next = del->next;
             //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
             free(del);
+            tail = temp;
             return head;
         }
         temp = temp->next;
@@ -910,6 +907,7 @@ Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
             //misalnya saat ini berada di alamat pertama, maka yang seharusnya temp->next itu menyimpan alamat kedua, jadi menyimpan alamat ketiga
             temp->next = del_2->next;
             //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
+            END = temp;
             free(del_2);
             return TOP;
         }
@@ -1002,6 +1000,7 @@ void tambahKeranjang( Node_1 *head, Node_2 *TOP, string userName ) {
 
 
 void hapusIsiKeranjang( Node_1 *head, Node_2 *TOP, string userName ) {
+	bool found = false;
 	while (head != NULL) {
 		if (head->data.userName == userName) {
 			string selectedID;
@@ -1019,14 +1018,14 @@ void hapusIsiKeranjang( Node_1 *head, Node_2 *TOP, string userName ) {
 					}
 					head->data.jumlahKeranjang--;
 					TOP->data.stok++;
+					cout<<"\n\n Berhasil!!! ";
+					found = true;
 				}
 			}
-			
-			cout<<"\n\nBerhasil!!! ";
 			break;
 		}
 		head = head->next;	
-	}
+	} if(!found) cout<<"\n\n ID Tidak ditemukan!!! ";
 }
 
 
@@ -1123,8 +1122,6 @@ void lihatHistory(Node_3 *FRONT){
 
 Node_3 *hapusDataHistory(Node_3 *FRONT, Node_3 *REAR){
 	//Buat Struct temp untuk perulangan nanti
-//	Node_3 *temp;
-//	temp = FRONT;
 	if (FRONT == NULL) {
 		cout<<"\n\n\nTidak ada transaksi!\n\n\n"; 
  	}
@@ -1133,6 +1130,8 @@ Node_3 *hapusDataHistory(Node_3 *FRONT, Node_3 *REAR){
         FRONT = FRONT->next;
         free(del_3);
     }
+    FRONT = NULL;
+    historyCount=0;
     return FRONT;
 }
 
