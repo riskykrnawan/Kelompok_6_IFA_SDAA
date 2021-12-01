@@ -11,9 +11,6 @@ using namespace std;
 
 
 
-struct Keranjang {
-	string selectedGame;
-};
 
 struct Account {
 	string _id, userName, nama, pass, email;
@@ -66,9 +63,10 @@ int historyCount = 0;
 
 
 void hubungiAdmin();
+void saveToCSV(Node_2 *TOP);
 void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount);
 void convertListToArr( Node_2 **TOP, Game *games );
-void convertArrToList(Node_2 **TOP, Game games);
+void convertArrToList(Node_2 **TOP, Node_2 **END, Game games);
 
 void auth(struct Node_1 *head, string userName, string pass);
 void menuLogin();
@@ -121,6 +119,31 @@ string timeNow() {
 	return currTime;
 }
 
+void saveToCSV(Node_2 *TOP) {
+	
+	//Sebelum Kita Masukkan Ke CSV, Kita sorting dulu berdasarkan ID biar ga berantakan, karna bisa jadi user melakukan sorting
+	convertListToArr(&TOP, &games[0]);
+	shellSort(&games[0], gameCount, "3", "1");	
+	TOP=NULL;
+	for (int i = 0; i < gameCount; i++){
+		convertArrToList(&TOP, &END, games[i]);
+	};
+	
+	Node_2 *temp = new Node_2;
+	temp = TOP;
+	if (temp == NULL) {
+		cout << "\nData Masih Kosong !! " << endl << endl;
+		return;
+	} else {
+		ofstream f("game.csv");
+		while ( temp != NULL ) {
+			f<<temp->data.ID<<","<<temp->data.namaGame<<","<<temp->data.tanggalRilis<<","<<temp->data.rating<<","<<temp->data.stok<<","<<temp->data.harga<<"\n";
+			temp = temp->next;
+		}
+		f.close();	
+	}
+}
+
 
 
 void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount) {
@@ -150,7 +173,7 @@ void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		games[i].harga = stoll(arr[5+i*6]);
 	} 
 	for (int i = 0; i <gameCount; i++){
-		convertArrToList(TOP, games[i]);
+		convertArrToList(TOP, END, games[i]);
 	}
 }
 
@@ -174,7 +197,7 @@ void convertListToArr( Node_2 **TOP, Game *games ) {
 
 	
 //fungsi ini untuk ngubah array awal jadi list.	
-void convertArrToList(Node_2 **TOP, Game games) {
+void convertArrToList(Node_2 **TOP, Node_2 **END, Game games) {
 	Node_2 *temp = new Node_2;
 	Node_2 *ptr;
 	temp->data.ID = games.ID;
@@ -185,8 +208,8 @@ void convertArrToList(Node_2 **TOP, Game games) {
 	temp->data.harga = games.harga;
 	
 	temp->data.stok = games.stok;
+	*END = temp;
 	temp->next = NULL;
-
 	if (*TOP == NULL) *TOP = temp;
 	else {
 		ptr = *TOP;
@@ -332,7 +355,7 @@ void menuUser(string userName) {
 			}
 			TOP=NULL;
 			for (int i = 0; i < gameCount; i++){
-				convertArrToList(&TOP, games[i]);
+				convertArrToList(&TOP, &END, games[i]);
 			};
 			cout<<"\n\n Tekan Enter Untuk Melanjutkan...   ";
 			getch();
@@ -422,7 +445,7 @@ void menuSort() {
 			shellSort(&games[0], gameCount, orderItem, orderMethod);	
 			TOP=NULL;
 			for (int i = 0; i < gameCount; i++){
-				convertArrToList(&TOP, games[i]);
+				convertArrToList(&TOP, &END, games[i]);
 			}
 			repeat=false;
 			cout<<"\n\nBerhasil!!\n\n";
@@ -465,6 +488,7 @@ void dataGame() {
 			cin>>SelectedID;
 			ubahDataGame(TOP, SelectedID);	
 			cout<<"\n\n Tekan Enter Untuk Melanjutkan...   ";
+			saveToCSV(TOP);
 			getch();
 			system("cls");
 		} else if (pil ==  "4") {
@@ -472,6 +496,7 @@ void dataGame() {
 			cout<<"\n\n Masukkan ID game yang ingin anda hapus:   ";
 			cin>>SelectedID;
 			TOP = hapusDataGame(TOP, END, SelectedID);
+			saveToCSV(TOP);
 			cout<<"\n\n Tekan Enter Untuk Melanjutkan...   ";
 			getch();
 			system("cls");
@@ -493,7 +518,7 @@ void dataGame() {
 			}
 			TOP=NULL;
 			for (int i = 0; i < gameCount; i++){
-				convertArrToList(&TOP, games[i]);
+				convertArrToList(&TOP, &END, games[i]);
 			};
 			cout<<"\n\n Tekan Enter Untuk Melanjutkan...   ";
 			getch();
@@ -706,7 +731,9 @@ Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
             temp->next = del->next;
             //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
             free(del);
-            tail = temp;
+            if (temp->next == NULL) {
+				tail = temp->next;
+			}
             return head;
         }
         temp = temp->next;
@@ -803,11 +830,11 @@ void addDataGameLast(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		cout << "Masukan Harga : "; cin >> harga;
 		newGame->data.harga = harga;			
 	}
-
+	
 	ofstream csvNewGame("game.csv", fstream::app);
     csvNewGame<<ID<<"," <<namaGame<<"," <<tanggalRilis<<"," <<rating<<"," <<stok<<"," <<harga<<"\n";
   	csvNewGame.close();
-				  	
+  	
 	gameCount++;
 	if(*TOP == NULL) {//kalau linked list kosong
 		*TOP = newGame;
@@ -815,15 +842,14 @@ void addDataGameLast(Node_2 **TOP, Node_2 **END, int &gameCount) {
 	} else {//kalau linked list sudah terisi
 		while(temp->next != NULL) {
 			temp = temp->next;
+//			cout<<temp->data.ID;
 		}
+		newGame->next = NULL;	
 		temp->next = newGame;
-		newGame->next = NULL;
 		*END = newGame;
 	}
 	free(newGame);
 }
-
-
 
 void ubahDataGame(Node_2 *TOP, string selectedID) {
 	Node_2 *nodeBaru = new Node_2();
@@ -872,8 +898,6 @@ void ubahDataGame(Node_2 *TOP, string selectedID) {
 	}
 }
 
-
-
 //Fungsi Hapus game bertipe data struct jadi ini kembaliannya nanti berupa Struct.
 Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
 	//Buat Struct temp untuk perulangan nanti
@@ -890,8 +914,8 @@ Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
 		//karena ini Posisi TOP nya adalah elemen yang mau dihapus, jadi langsung arahkan saja TOPnya ke alamat selanjutnya
         TOP = TOP->next;
         TOP->prev = NULL;
-        //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
-        free(del_2);  
+        gameCount--;
+
         return TOP;
     }
     //masukkan nilai dari TOP ke temp
@@ -900,14 +924,19 @@ Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
     while (temp -> next != NULL) {
     	// kalau dalam perulangan itu alamat selanjutnya memiliki data.ID yang mau kita hapus
         if (temp->next->data.ID == SelectedID) {
+			
         	//del_2 nya itu menyimpan dari alamat next variable temp
         	//misalnya saat ini berada di alamat pertama, maka del_2 menyimpan alamat kedua:
             del_2 = temp -> next;
             //setelah itu alamat next dari temp itu menyimpan alamat next dari variable del
             //misalnya saat ini berada di alamat pertama, maka yang seharusnya temp->next itu menyimpan alamat kedua, jadi menyimpan alamat ketiga
+            //pindahkan end nya kalau elemen terakhir yang dihapus
             temp->next = del_2->next;
+            if (temp->next == NULL) {
+				END = temp->next;
+			}
             //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
-            END = temp;
+            gameCount--;
             free(del_2);
             return TOP;
         }
@@ -915,8 +944,6 @@ Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
     }
     return TOP;
 }
-
-
 
 void lihatKeranjang( Node_1 *head,  Node_2 *TOP, string userName) {
 	cout<<"\n";
