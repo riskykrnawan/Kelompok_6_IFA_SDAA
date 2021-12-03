@@ -58,8 +58,6 @@ int gameCount = 0;
 int historyCount = 0;
 
 
-
-
 void hubungiAdmin();
 void saveToCSV(Node_2 *TOP);
 void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount);
@@ -117,16 +115,7 @@ string timeNow() {
 	return currTime;
 }
 
-void saveToCSV(Node_2 *TOP) {
-	
-	//Sebelum Kita Masukkan Ke CSV, Kita sorting dulu berdasarkan ID biar ga berantakan, karna bisa jadi user melakukan sorting
-	convertListToArr(&TOP, &games[0]);
-	shellSort(&games[0], gameCount, "3", "1");	
-	TOP=NULL;
-	for (int i = 0; i < gameCount; i++){
-		convertArrToList(&TOP, &END, games[i]);
-	};
-	
+void saveToCSV(Node_2 *TOP) {	
 	Node_2 *temp = new Node_2;
 	temp = TOP;
 	if (temp == NULL) {
@@ -173,9 +162,13 @@ void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		games[i].stok = stoi(arr[4+i*6]);
 		games[i].harga = stoll(arr[5+i*6]);
 	}
+	
+	
+	shellSort(&games[0], gameCount, "3", "1");	
 	for (int i = 0; i <gameCount; i++){
 		convertArrToList(TOP, END, games[i]);
 	}
+		
 }
 
 
@@ -802,13 +795,13 @@ void lihatDataSatuGame( Node_2 *TOP, string selectedID ) {
 
 // fungsi untuk mendaftarkan game baru
 void addDataGameLast(Node_2 **TOP, Node_2 **END, int &gameCount) {
-	string ID, namaGame, tanggalRilis;
-	int rating = 0;
-	int stok = 0;
-	int harga = 0;
+	string ID, namaGame, tanggalRilis, rating, stok, harga;
+//	int rating = 0;
+//	int stok = 0;
+//	int harga = 0;
 	Node_2 *newGame = new Node_2();
 	Node_2 *temp = new Node_2();	
-	temp = (*TOP);
+	temp = (*END);
 	while (ID == "") {//tidak boleh kosong
 		cout<<"\n\nMasukkan ID Game	:  ";fflush(stdin);getline(cin, ID);	
 		newGame->data.ID = ID;
@@ -821,19 +814,18 @@ void addDataGameLast(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		cout<<"Masukkan Tanggal Rilis	:  ";fflush(stdin);getline(cin, tanggalRilis);		
 		newGame->data.tanggalRilis= tanggalRilis;
 	}
-	while (rating == 0) {//tidak boleh kosong
-		cout << "Masukan Rating  : "; cin >> rating;
-		newGame->data.rating = rating;	
+	while (rating == "") {//tidak boleh kosong
+		cout << "Masukan Rating  : ";fflush(stdin);getline(cin, rating);
+		newGame->data.rating = stoi(rating);	
+	}
+	while (stok == "") {//tidak boleh kosong
+		cout << "Masukan Stok  : ";fflush(stdin);getline(cin, stok);
+		newGame->data.stok = stoi(stok);		
 		
 	}
-	while (stok == 0) {//tidak boleh kosong
-		cout << "Masukan Stok  : "; cin >> stok;
-		newGame->data.stok = stok;		
-		
-	}
-	while (harga == 0) {//tidak boleh kosong
-		cout << "Masukan Harga : "; cin >> harga;
-		newGame->data.harga = harga;			
+	while (harga == "") {//tidak boleh kosong
+		cout << "Masukan Harga : ";fflush(stdin);getline(cin, harga);
+		newGame->data.harga = stoi(harga);			
 	}
 	
 	ofstream csvNewGame("game.csv", fstream::app);
@@ -845,25 +837,22 @@ void addDataGameLast(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		*TOP = newGame;
 		*END = newGame;
 	} else {//kalau linked list sudah terisi
-		while(temp->next != NULL) {
-			temp = temp->next;
-//			cout<<temp->data.ID;
-		}
+//		while(temp->next != NULL) {
+//			temp = temp->next;
+//		}	
 		newGame->next = NULL;	
 		temp->next = newGame;
 		*END = newGame;
 	}
 	free(newGame);
+	
 }
 
 void ubahDataGame(Node_2 *TOP, string selectedID) {
-	Node_2 *nodeBaru = new Node_2();
-    
-	nodeBaru = TOP;
-	while (nodeBaru != NULL) {
+	while (TOP != NULL) {
 		char pil;
 		bool repeat = true;
-        if (nodeBaru->data.ID == selectedID) {
+        if (TOP->data.ID == selectedID) {
         	do {
         		system("cls");
         		lihatDataSatuGame(TOP, selectedID);
@@ -875,23 +864,23 @@ void ubahDataGame(Node_2 *TOP, string selectedID) {
 	        	cout << "5. Ubah Harga"<<endl;
 	        	cout << "\nPilih Menu: ";pil = getch();
 	        	if(pil == '1') { 
-	        		cout<<"\n\nMasukkan Nama Game Baru  :  " ;	fflush(stdin);getline(cin,nodeBaru->data.namaGame);	
+	        		cout<<"\n\nMasukkan Nama Game Baru  :  " ;	fflush(stdin);getline(cin,TOP->data.namaGame);	
 	        		repeat = false;
 	        		cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '2') {
-					cout<<"\n\nMasukkan Tanggal Rilis Baru :  "; fflush(stdin);getline(cin,nodeBaru->data.tanggalRilis);	
+					cout<<"\n\nMasukkan Tanggal Rilis Baru :  "; fflush(stdin);getline(cin,TOP->data.tanggalRilis);	
 					repeat = false;
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '3') {
-					cout<<"\n\nMasukkan Rating Baru :  "; 	cin>>nodeBaru->data.rating;
+					cout<<"\n\nMasukkan Rating Baru :  "; 	cin>>TOP->data.rating;
 					repeat = false;
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '4') {
-					cout<<"\n\nMasukkan Stok Baru :  "; 	cin>>nodeBaru->data.stok;
+					cout<<"\n\nMasukkan Stok Baru :  "; 	cin>>TOP->data.stok;
 					repeat = false;
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else if (pil == '5') {
-					cout<<"\n\nMasukkan Harga Baru :  "; 	cin>>nodeBaru->data.harga;
+					cout<<"\n\nMasukkan Harga Baru :  "; 	cin>>TOP->data.harga;
 					repeat = false;
 					cout << "\n\nBerhasil!!!\n\n\n\n" << endl;
 				} else {
@@ -899,14 +888,16 @@ void ubahDataGame(Node_2 *TOP, string selectedID) {
 				}
 			} while(repeat);
         }        
-		nodeBaru = nodeBaru -> next;
+		TOP = TOP -> next;
 	}
 }
+
+
 
 //Fungsi Hapus game bertipe data struct jadi ini kembaliannya nanti berupa Struct.
 Node_2 *hapusDataGame(Node_2 *TOP, Node_2 *END, string SelectedID){
 	//Buat Struct temp untuk perulangan nanti
-	Node_2 *temp;
+	Node_2 *temp = new Node_2;
 	if (TOP == NULL) {
 		cout << "Game Tidak ada!!" << endl;
  	}
