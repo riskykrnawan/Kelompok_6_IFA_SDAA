@@ -10,13 +10,11 @@ using namespace std;
 
 
 
-
-
 struct Account {
 	string _id, userName, nama, pass, email;
 	string isiKeranjang[100];
 	int jumlahKeranjang;
-};
+};	
 struct Node_1 {
 	struct Account data;
 	struct Node_1 *next;	
@@ -163,6 +161,9 @@ void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		}
 		gameCount++;
 	}
+	
+	
+	
 	for ( i = 0; i<gameCount; i++ ) {
 		//karena ini ada 6 kolom, maka dikali 6, jadi ketemu lagi di kolom yg sama di kelipatan 6
 		games[i].ID = arr[0+i*6];
@@ -171,7 +172,7 @@ void csvToArr(Node_2 **TOP, Node_2 **END, int &gameCount) {
 		games[i].rating = stoi(arr[3+i*6]);
 		games[i].stok = stoi(arr[4+i*6]);
 		games[i].harga = stoll(arr[5+i*6]);
-	} 
+	}
 	for (int i = 0; i <gameCount; i++){
 		convertArrToList(TOP, END, games[i]);
 	}
@@ -381,6 +382,7 @@ void menuUser(string userName) {
 			lihatKeranjang(head, TOP, userName);	
 			checkout(head, TOP, &FRONT, userName);
 			head->data.jumlahKeranjang=0;
+			saveToCSV(TOP);
 			cout<<"\n\n Berhasil!!   ";
 			cout<<"\n Tekan Enter Untuk Melanjutkan...   ";
 			getch();
@@ -556,10 +558,12 @@ void dataUser() {
 			system("cls");
 		} else if (pil ==  "3") {
 			lihatDataUser(head);
-			cout<<"\n\n Masukkan ID User yang ingin anda hapus:   ";
-			cin>>selectedID;
-			head = hapusDataUser(head, tail, selectedID);
-			cout<<"\n\n Berhasil!!   ";
+			if(head != NULL) {
+				cout<<"\n\n Masukkan ID User yang ingin anda hapus:   ";
+				cin>>selectedID;
+				head = hapusDataUser(head, tail, selectedID);
+				cout<<"\n\n Berhasil!!   ";	
+			}
 			cout<<"\n Tekan Enter Untuk Melanjutkan...   ";
 			getch();
 			system("cls");
@@ -622,7 +626,7 @@ void auth(struct Node_1 *head, string userName, string pass) {
 
 void lihatDataUser(struct Node_1 *head){
 	if (head == NULL) {
-		cout << "\nData Masih Kosong !!\n\n ";
+		cout << "\n User Tidak Ada !!\n\n ";
 		return;
 	} else {
 		cout << "\nData: " << "\n\n";
@@ -696,7 +700,6 @@ void ubahDataUser( Node_1 *head, string selectedID ) {
 
 
 
-
 //Fungsi Hapus game bertipe data struct jadi ini kembaliannya nanti berupa Struct.
 Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
 	//Buat Struct temp untuk perulangan nanti
@@ -714,6 +717,7 @@ Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
 		//karena ini Posisi head nya adalah elemen yang mau dihapus, jadi langsung arahkan saja TOPnya ke alamat selanjutnya
         head = head->next;
         head->prev = NULL;
+        accountCount--;
         //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
         return head;
     }
@@ -730,10 +734,11 @@ Node_1 *hapusDataUser(Node_1 *head, Node_1 *tail, string selectedID){
             //misalnya saat ini berada di alamat pertama, maka yang seharusnya temp->next itu menyimpan alamat kedua, jadi menyimpan alamat ketiga
             temp->next = del->next;
             //free kita menghemat memory karena del_2 sudah tidak terpakai, fungsinya sama seperti delete
-            free(del);
             if (temp->next == NULL) {
 				tail = temp->next;
 			}
+			accountCount--;
+            free(del);
             return head;
         }
         temp = temp->next;
